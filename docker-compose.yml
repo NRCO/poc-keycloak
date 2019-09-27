@@ -1,0 +1,38 @@
+version: '2'
+networks:
+  default:
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+      - subnet: 172.20.3.0/24
+        gateway: 172.20.3.1
+services:
+    mysql:
+        image: mariadb:5
+        container_name: mysql1
+        ports:
+            - 3306:3306
+        environment:
+            - MYSQL_ROOT_PASSWORD=toor
+            - MYSQL_DATABASE=keycloak
+            - MYSQL_USER=keycloak
+            - MYSQL_PASSWORD=keycloak
+        volumes:
+            - ./volumes/mysql/data:/var/lib/mariadb
+    keycloak1:
+        image: jboss/keycloak:7.0.0
+        container_name: keycloak1
+        ports:
+            - 8080:8080
+        environment:
+            - ES_JAVA_OPTS=-Xms256m\ -Xmx512m
+            - KEYCLOAK_USER=admin
+            - KEYCLOAK_PASSWORD=admin
+            - DB_USER=keycloak
+            - DB_PASSWORD=keycloak
+            - DB_DATABASE=keycloak
+            - DB_PORT=3306
+            - DB_ADDR=mysql
+        links:
+            - mysql:mysql
