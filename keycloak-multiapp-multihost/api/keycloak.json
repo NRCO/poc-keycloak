@@ -1,0 +1,13 @@
+{
+  "realm": "master",
+  "bearer-only": true,
+  "auth-server-url": "http://localhost:8080/auth",
+  "ssl-required": "external",
+  "resource": "api",
+  "verify-token-audience": true,
+  "credentials": {
+    "secret": "f03a9dff-0386-4bcd-a8ab-f6ccb4e1cf3f"
+  },
+  "confidential-port": 0,
+  "policy-enforcer": {}
+}

@@ -1,22 +1,40 @@
 var express = require("express")
 var app = express()
+var session = require('express-session');
+var bodyParser = require('body-parser');
+var Keycloak = require('keycloak-connect');
 var cors = require('cors')
 var db = require("./db.js")
 var md5 = require("md5")
 
 var bodyParser = require("body-parser");
+app.use(bodyParser.json());
 app.use(cors());
 app.use(bodyParser.urlencoded({ extended: false }));
-app.use(bodyParser.json());
 
 var HTTP_PORT = 27000
+
+var memoryStore = new session.MemoryStore();
+
+app.use(session({
+  secret: 'some secret',
+  resave: false,
+  saveUninitialized: true,
+  store: memoryStore
+}));
+
+var keycloak = new Keycloak({
+  store: memoryStore
+});
+
+app.use(keycloak.middleware());
 
 // Start server
 app.listen(HTTP_PORT, () => {
     console.log("Server running on port %PORT%".replace("%PORT%",HTTP_PORT))
 });
 
-app.get("/api/comments", (req, res, next) => {
+app.get("/api/comments", keycloak.enforcer('comments:read', {response_mode: 'permissions'}), (req, res, next) => {
     console.log('GET /api/comments');
     var sql = "select * from comment"
     var params = []
@@ -33,7 +51,7 @@ app.get("/api/comments", (req, res, next) => {
 });
 
 
-app.get("/api/comment/:id", (req, res, next) => {
+app.get("/api/comment/:id", keycloak.protect('scopes:read'), (req, res, next) => {
     console.log(`GET /api/comments/${req.params.id}`);
     var sql = "select * from comment where id = ?"
     var params = [req.params.id]
@@ -50,7 +68,7 @@ app.get("/api/comment/:id", (req, res, next) => {
 });
 
 
-app.post("/api/comment/", (req, res, next) => {
+app.post("/api/comment/", keycloak.protect('scopes:write'), (req, res, next) => {
     console.log(`POST /api/comments`);
     var errors=[]
     if (!req.body.password){
@@ -85,7 +103,7 @@ app.post("/api/comment/", (req, res, next) => {
 
 
 
-app.patch("/api/comment/:id", (req, res, next) => {
+app.patch("/api/comment/:id", keycloak.protect('scopes:write'), (req, res, next) => {
     console.log(`PATCH /api/comments/${req.params.id}`);
     var data = {
         name: req.body.name,
@@ -112,7 +130,7 @@ app.patch("/api/comment/:id", (req, res, next) => {
 })
 
 
-app.delete("/api/comment/:id", (req, res, next) => {
+app.delete("/api/comment/:id", keycloak.protect('scopes:delete') ,(req, res, next) => {
     console.log(`DELETE /api/comments/${req.params.id}`);
     db.run(
         'DELETE FROM comment WHERE id = ?',
