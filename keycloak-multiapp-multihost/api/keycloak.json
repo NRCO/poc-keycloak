@@ -1,13 +1,112 @@
 {
-  "realm": "master",
-  "bearer-only": true,
-  "auth-server-url": "http://localhost:8080/auth",
-  "ssl-required": "external",
-  "resource": "api",
-  "verify-token-audience": true,
-  "credentials": {
-    "secret": "f03a9dff-0386-4bcd-a8ab-f6ccb4e1cf3f"
-  },
-  "confidential-port": 0,
-  "policy-enforcer": {}
+    "realm": "master",
+    "bearer-only": true,
+    "auth-server-url": "http://localhost:8080/auth",
+    "ssl-required": "external",
+    "resource": "api",
+    "verify-token-audience": true,
+    "credentials": {
+        "secret": "f03a9dff-0386-4bcd-a8ab-f6ccb4e1cf3f"
+    },
+    "confidential-port": 0,
+    "policy-enforcer": {
+        "allowRemoteResourceManagement": true,
+        "policyEnforcementMode": "ENFORCING",
+        "resources": [
+            {
+                "name": "Default Resource",
+                "type": "urn:api:resources:default",
+                "ownerManagedAccess": false,
+                "attributes": {},
+                "_id": "4ed300cf-14f4-4b20-b64f-548df32f10bf",
+                "uris": [
+                    "/*"
+                ]
+            },
+            {
+                "name": "comments",
+                "type": "urn:api:resources:default",
+                "ownerManagedAccess": false,
+                "displayName": "comments",
+                "attributes": {},
+                "_id": "5fb208bd-ef1e-489c-8790-c3ea2657916c",
+                "uris": [
+                    "/api/comments/*",
+                    "/api/comments"
+                ],
+                "scopes": [
+                    {
+                        "name": "read"
+                    },
+                    {
+                        "name": "write"
+                    },
+                    {
+                        "name": "delete"
+                    }
+                ]
+            }
+        ],
+        "policies": [
+            {
+                "id": "2e15a037-bf98-47ac-801c-338fe4d4039e",
+                "name": "Default Policy",
+                "description": "A policy that grants access only for users within this realm",
+                "type": "js",
+                "logic": "POSITIVE",
+                "decisionStrategy": "AFFIRMATIVE",
+                "config": {
+                    "code": "// by default, grants any permission associated with this policy\n$evaluation.grant();\n"
+                }
+            },
+            {
+                "id": "871c9d4f-9fdd-43b8-995c-fbba260694d5",
+                "name": "app1",
+                "type": "client",
+                "logic": "POSITIVE",
+                "decisionStrategy": "UNANIMOUS",
+                "config": {
+                    "clients": "[\"app1\"]"
+                }
+            },
+            {
+                "id": "1beecd24-1de4-48b4-b88f-ccf29c8d6d27",
+                "name": "Default Permission",
+                "description": "A permission that applies to the default resource type",
+                "type": "resource",
+                "logic": "POSITIVE",
+                "decisionStrategy": "UNANIMOUS",
+                "config": {
+                    "defaultResourceType": "urn:api:resources:default",
+                    "applyPolicies": "[\"Default Policy\"]"
+                }
+            },
+            {
+                "id": "6c4fc372-b98d-4163-82d7-e4dd21bea0ec",
+                "name": "comments:read",
+                "type": "scope",
+                "logic": "POSITIVE",
+                "decisionStrategy": "UNANIMOUS",
+                "config": {
+                    "resources": "[\"comments\"]",
+                    "scopes": "[\"read\"]",
+                    "applyPolicies": "[\"app1\"]"
+                }
+            }
+        ],
+        "scopes": [
+            {
+                "id": "37c88b4a-a852-46a9-b2d4-0281c83a54b1",
+                "name": "read"
+            },
+            {
+                "id": "5cb29be0-ffee-464a-a263-b209a2576ceb",
+                "name": "delete"
+            },
+            {
+                "id": "837a9353-b34f-4934-a5b7-471b405b7913",
+                "name": "write"
+            }
+        ]
+    }
 }

@@ -1,8 +1,8 @@
 var express = require("express")
-var app = express()
+var app = express();
+var Keycloak = require("keycloak-connect");
 var session = require('express-session');
 var bodyParser = require('body-parser');
-var Keycloak = require('keycloak-connect');
 var cors = require('cors')
 var db = require("./db.js")
 var md5 = require("md5")
@@ -34,24 +34,28 @@ app.listen(HTTP_PORT, () => {
     console.log("Server running on port %PORT%".replace("%PORT%",HTTP_PORT))
 });
 
-app.get("/api/comments", keycloak.enforcer('comments:read', {response_mode: 'permissions'}), (req, res, next) => {
-    console.log('GET /api/comments');
-    var sql = "select * from comment"
-    var params = []
-    db.all(sql, params, (err, rows) => {
-        if (err) {
-          res.status(400).json({"error":err.message});
-          return;
-        }
-        res.json({
-            "message":"success",
-            "data":rows
-        })
-      });
-});
+app.get(
+    "/api/comments",
+    keycloak.enforcer(['comments:read']),
+    (req, res, next) => {
+        console.log('GET /api/comments');
+        var sql = "select * from comment"
+        var params = []
+        db.all(sql, params, (err, rows) => {
+            if (err) {
+              res.status(400).json({"error":err.message});
+              return;
+            }
+            res.json({
+                "message":"success",
+                "data":rows
+            })
+          });
+      }
+ );
 
 
-app.get("/api/comment/:id", keycloak.protect('scopes:read'), (req, res, next) => {
+app.get("/api/comments/:id", keycloak.enforcer('comments:read'), (req, res, next) => {
     console.log(`GET /api/comments/${req.params.id}`);
     var sql = "select * from comment where id = ?"
     var params = [req.params.id]
